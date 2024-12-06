@@ -421,4 +421,161 @@ echo 'Welcome to {hostname}' > /var/www/html/index.html
 service apache2 restart
 ```
 
+## Misi 2
+
+### 1.
+![image](https://github.com/user-attachments/assets/ea0e169a-c91d-40e9-8832-2bb015c266bc)
+```
+iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to-source $IP_ETH0
+```
+
+### 2.
+
+![image](https://github.com/user-attachments/assets/a6f30119-025f-4123-836c-b317d1956dc4)
+
+Fairy
+```
+# Blokir semua ping ke Fairy
+iptables -A INPUT -p icmp --icmp-type echo-request -j DROP
+
+#Perbolehkan ping dari Fairy
+iptables -A OUTPUT -p icmp --icmp-type echo-request -j ACCEPT
+```
+
+![image](https://github.com/user-attachments/assets/38261090-dd37-44be-a49e-dcbb778692fe)
+
+![image](https://github.com/user-attachments/assets/4d53f2b0-2613-4148-bd9d-992959d9ef85)
+
+### 3.
+
+![image](https://github.com/user-attachments/assets/4ac41adc-e1ba-4901-bbce-d34bcf6e8899)
+
+HDD
+```
+#Izinkan koneksi dari Fairy
+iptables -A INPUT -s 192.246.2.211 -j ACCEPT
+
+#Tolak semua koneksi dari sumber lain
+iptables -A INPUT -j REJECT
+```
+
+![image](https://github.com/user-attachments/assets/06c167ec-e5f5-455f-9182-955ce9f9075e)
+
+![image](https://github.com/user-attachments/assets/db4dab41-ec3c-43ab-afe3-b831eff8232f)
+
+![image](https://github.com/user-attachments/assets/cbc5f141-dd6e-48ca-ae20-eb4324ac4184)
+
+### 4.
+
+![image](https://github.com/user-attachments/assets/4c9f00ce-865f-4f18-9e02-a013b6e1a731)
+
+HollowZero
+```
+# Burnice Caesar Jane Policeboo
+iptables -A INPUT -p tcp -s (IP Burnice) --dport 80 -m time --timestart 00:00 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j ACCEPT
+
+iptables -A INPUT -p tcp -s (IP Caesar) --dport 80 -m time --timestart 00:00 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j ACCEPT
+
+iptables -A INPUT -p tcp -s (IP Jane) --dport 80 -m time --timestart 00:00 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j ACCEPT
+
+iptables -A INPUT -p tcp -s (IP Policeboo) --dport 80 -m time --timestart 00:00 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j ACCEPT
+
+iptables -A INPUT -p tcp --dport 80 -j REJECT
+```
+
+![image](https://github.com/user-attachments/assets/08b82013-1575-4836-b0d2-7f5b50f3ac00)
+
+![image](https://github.com/user-attachments/assets/58781051-a567-4c8e-a93a-3ccd422489c9)
+
+### 5.
+
+![image](https://github.com/user-attachments/assets/094d7e62-5553-41d8-8cae-06519900449d)
+
+HIA
+```
+# Akses Node Ellen dan Lycaon (08:00 - 21:00)
+iptables -A INPUT -p tcp -s (IP Ellen) --dport 80 -m time --timestart 01:00 --timestop 14:00 --weekdays Mon,Tue,Wed,Thu,Fri,Sat,Sun -j ACCEPT
+
+iptables -A INPUT -p tcp -s (IP Lycaon) --dport 80 -m time --timestart 01:00 --timestop 14:00 --weekdays Mon,Tue,Wed,Thu,Fri,Sat,Sun -j ACCEPT
+
+# Akses Node Jane dan Policeboo (03:00 - 23:00)
+iptables -A INPUT -p tcp -s (IP Jane) --dport 80 -m time --timestart 20:00 --timestop 16:00 --weekdays Mon,Tue,Wed,Thu,Fri,Sat,Sun -j ACCEPT
+
+iptables -A INPUT -p tcp -s (IP Policeboo) --dport 80 -m time --timestart 20:00 --timestop 16:00 --weekdays Mon,Tue,Wed,Thu,Fri,Sat,Sun -j ACCEPT
+
+# Tolak semua koneksi lainnya
+iptables -A INPUT -p tcp --dport 80 -j REJECT
+```
+
+![image](https://github.com/user-attachments/assets/a2c8dc5e-aebc-4583-892f-29990b007a84)
+
+![image](https://github.com/user-attachments/assets/435ee563-c14e-4119-a742-1fdf0bddf781)
+
+### 6.
+
+![image](https://github.com/user-attachments/assets/e7d877bf-a17f-4754-8d93-8156a8aa9195)
+
+HIA
+```
+# Atur rate limit untuk port scanning (maksimum 25 koneksi per 10 detik)
+iptables -N PORTSCAN
+iptables -A INPUT -p tcp --dport 1:100 -m state --state NEW -m recent --set --name portscan
+iptables -A INPUT -p tcp --dport 1:100 -m state --state NEW -m recent --update --seconds 10 --hitcount 25 --name portscan -j PORTSCAN
+
+# Blokir IP yang terdeteksi melakukan port scanning tidak wajar
+iptables -A PORTSCAN -m recent --set --name blacklist
+iptables -A PORTSCAN -j DROP
+
+# Blokir semua aktivitas dari IP yang ada di daftar blacklist
+iptables -A INPUT -m recent --name blacklist --rcheck -j REJECT
+iptables -A OUTPUT -m recent --name blacklist --rcheck -j REJECT
+
+# Logging untuk port scanning
+iptables -A PORTSCAN -j LOG --log-prefix='PORT SCAN DETECTED' --log-level 4
+```
+
+[Hasil analisis](https://docs.google.com/document/d/1sqsGdkdYZDqCCbIJ1N6nwNeuJ2b5brRPjhPlgvuVF3c/edit?usp=sharing)
+
+### 7.
+
+![image](https://github.com/user-attachments/assets/9df542c9-605b-4a86-917e-7f2c276e0295)
+
+HollowZero
+```
+# Hanya izinkan maksimal 2 koneksi aktif dari 2 IP berbeda
+iptables -A INPUT -p tcp --dport 80 -m conntrack --ctstate NEW -m recent --set
+iptables -A INPUT -p tcp --dport 80 -m conntrack --ctstate NEW -m recent --update --seconds 1 --hitcount 3 -j REJECT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+```
+
+![image](https://github.com/user-attachments/assets/1f148931-21dd-406e-a95c-0449bc827515)
+
+### 8.
+
+![image](https://github.com/user-attachments/assets/f836dacb-0926-44df-a337-ba9c7dc7a0b4)
+
+Burnice
+```
+iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination 192.234.2.226 --dport 8080
+iptables -A FORWARD -p tcp -d 192.234.2.226 -j ACCEPT
+```
+
+![image](https://github.com/user-attachments/assets/e0d7d65f-ad3b-4324-a3e4-5360a7e308c3)
+
+![image](https://github.com/user-attachments/assets/42d21271-1fb8-4977-8ce4-83c7b54cd296)
+
+![Screenshot 2024-12-06 223246](https://github.com/user-attachments/assets/f2651d77-769e-449f-861a-6484dd851f50)
+
+### 9.
+
+Burnice
+```
+iptables --policy INPUT DROP
+iptables --policy OUTPUT DROP
+iptables --policy FORWARD DROP
+```
+
+![image](https://github.com/user-attachments/assets/e9b366b0-ac4c-468c-a9a5-472c290fdf4d)
+
+![image](https://github.com/user-attachments/assets/6c0090c0-1c60-486d-850a-c2bc9fb0fedd)
 
