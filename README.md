@@ -568,6 +568,8 @@ iptables -A FORWARD -p tcp -d 192.234.2.226 -j ACCEPT
 
 ### 9.
 
+![image](https://github.com/user-attachments/assets/9ccf2edd-cb36-4459-88b3-03489808a436)
+
 Burnice
 ```
 iptables --policy INPUT DROP
